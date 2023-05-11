@@ -89,7 +89,27 @@ df_2020 = df_2020.rename(columns={"2020_x": "Arable", "2020_y": "Forest"})
 print(df_2020)
 
 # Create a scatter matrix plot of the 'df_2020' DataFrame
-pd.plotting.scatter_matrix(df_2020, figsize=(10, 6), s=10, alpha=0.8)
+scatter_matrix = pd.plotting.scatter_matrix(df_2020, figsize=(10, 6), s=10, alpha=0.8)
+
+# Add titles and labels
+plt.suptitle('Scatter Matrix Plot of df_2020', fontsize=16)
+for ax in scatter_matrix.flatten():
+    ax.set_xlabel(ax.get_xlabel(), fontsize=10)
+    ax.set_ylabel(ax.get_ylabel(), fontsize=10)
+
+# Add legends
+for ax in scatter_matrix[:,0]:
+    ax.yaxis.label.set_rotation(0)
+    ax.yaxis.label.set_ha('right')
+    ax.legend()
+
+for ax in scatter_matrix[-1,:]:
+    ax.xaxis.label.set_rotation(90)
+    ax.xaxis.label.set_ha('right')
+    ax.legend()
+
+plt.tight_layout()
+plt.show()
 
 # Compute the correlation matrix of the 'df_2020' DataFrame
 print(df_2020.corr())
@@ -146,37 +166,51 @@ xcen = cen[:, 0]
 ycen = cen[:, 1]
 
 
-# create a figure cluster by cluster
-plt.figure(figsize=(10.0, 6.0))
+# Define the colormap and color labels
+cmap = plt.cm.get_cmap('tab10')
+color_labels = range(len(labels))
 
-cm = plt.cm.get_cmap('tab10')
-plt.scatter(df_cluster["Arable"], df_cluster["Forest"],
-            40, labels, marker="o", cmap=cm)
-plt.scatter(xcen, ycen, 45, "k", marker="d")
-plt.xlabel("Arable")
-plt.ylabel("Forest")
+# Create a scatter plot of the clustered data
+plt.figure(figsize=(10.0, 6.0))
+scatter = plt.scatter(df_cluster["Arable"], df_cluster["Forest"], s=40,
+                      c=labels, cmap=cmap, alpha=0.8, edgecolors='none')
+
+# Create a scatter plot of the cluster centroids
+plt.scatter(xcen, ycen, s=45, marker="d", color='k')
+
+# Add a colorbar legend
+cbar = plt.colorbar(scatter, ticks=color_labels)
+cbar.ax.set_yticklabels(color_labels)
+
+# Add a title and axis labels
+plt.title("Clustered Arable vs. Forest Data", fontsize=16)
+plt.xlabel("Arable", fontsize=12)
+plt.ylabel("Forest", fontsize=12)
+
 plt.show()
 
 
-# move the cluster centres to the original scale
-cen = ct.backscale(cen, df_min, df_max)
-xcen = cen[:, 0]
-ycen = cen[:, 1]
 
-# create a figure cluster by cluster
+# Create a scatter plot of the clustered data
 plt.figure(figsize=(10.0, 6.0))
+scatter = plt.scatter(df_2020["Arable"], df_2020["Forest"], s=40, c=labels,
+                       cmap=cmap, alpha=0.8, edgecolors='none')
 
-cm = plt.cm.get_cmap('tab10')
-plt.scatter(df_2020["Arable"], df_2020["Forest"],
-            40, labels, marker="o", cmap=cm)
-plt.scatter(xcen, ycen, 45, "k", marker="d")
-plt.xlabel("Arable")
-plt.ylabel("Forest")
+# Create a scatter plot of the cluster centroids
+plt.scatter(xcen, ycen, s=45, marker="d", color='k')
+
+# Add a colorbar legend
+cbar = plt.colorbar(scatter, ticks=color_labels)
+cbar.ax.set_yticklabels(color_labels)
+
+# Add a title and axis labels
+plt.title("Clustered Arable vs. Forest Data", fontsize=16)
+plt.xlabel("Arable", fontsize=12)
+plt.ylabel("Forest", fontsize=12)
+
 plt.show()
 
 # Define a linear model
-
-
 def linear_model(x, m, c):
     return m * x + c
 
@@ -187,10 +221,25 @@ y_data = df_2020["Forest"]
 
 df_arable = pd.read_csv("SL_Arable.csv")
 
-df_arable.plot("Year", "Arable land (% of land area)")
+# Create a line plot of the arable land over time
+plt.figure(figsize=(10.0, 6.0))
+plt.plot(df_arable["Year"], df_arable["Arable land (% of land area)"], 
+         marker="o")
+
+# Add a title and axis labels
+plt.title("Arable Land as a Percentage of Land Area, 1990-2020", fontsize=16)
+plt.xlabel("Year", fontsize=12)
+plt.ylabel("Arable Land (% of Land Area)", fontsize=12)
+
+# Set the x-axis tick marks to every 5 years
+plt.xticks(range(1960, 2021, 5))
+
+# Show the plot
 plt.show()
 
 
+
+# defining exponential funtion
 def exponential(t, n0, g):
     """
     Calculates exponential function with scale factor n0 and growth rate g.
@@ -215,10 +264,28 @@ print("growth rate", param[1])
 
 df_arable["fit"] = exponential(df_arable["Year"], *param)
 
-df_arable.plot("Year", ["Arable land (% of land area)", "fit"])
+# Create a line plot of the arable land over time, with the fitted line
+plt.figure(figsize=(10.0, 6.0))
+plt.plot(df_arable["Year"], df_arable["Arable land (% of land area)"], 
+         marker="o", label="Arable Land (%)")
+plt.plot(df_arable["Year"], df_arable["fit"], linestyle="--", 
+         label="Trendline")
+
+# Add a title and axis labels
+plt.title("Arable Land as a Percentage of Land Area, 1990-2020", fontsize=16)
+plt.xlabel("Year", fontsize=12)
+plt.ylabel("Arable Land (% of Land Area)", fontsize=12)
+
+# Set the x-axis tick marks to every 5 years
+plt.xticks(range(1960, 2021, 5))
+
+# Add a legend
+plt.legend()
+
+# Show the plot
 plt.show()
 
-
+# defining logistic function
 def logistic(t, n0, g, t0):
     """
     Calculates the logistic function with scale factor n0 and growth rate g
@@ -237,8 +304,25 @@ sigma = np.sqrt(np.diag(covar))
 
 df_arable["fit"] = logistic(df_arable["Year"], *param)
 
-df_arable.plot("Year", ["Arable land (% of land area)", "fit"])
+# Create a line plot of the arable land over time, with the fitted line
+plt.figure(figsize=(10.0, 6.0))
+df_arable.plot(x="Year", y=["Arable land (% of land area)", "fit"], 
+               ax=plt.gca(), marker="o")
+
+# Add a title and axis labels
+plt.title("Arable Land as a Percentage of Land Area, 1990-2020", fontsize=16)
+plt.xlabel("Year", fontsize=12)
+plt.ylabel("Arable Land (% of Land Area)", fontsize=12)
+
+# Set the x-axis tick marks to every 5 years
+plt.xticks(range(1960, 2021, 5))
+
+# Add a legend
+plt.legend(fontsize=12)
+
+# Show the plot
 plt.show()
+
 
 print("turning point", param[2], "+/-", sigma[2])
 print("Arable land (% of land area) at turning point",
@@ -246,17 +330,27 @@ print("Arable land (% of land area) at turning point",
 print("growth rate", param[1], "+/-", sigma[1])
 
 
+# Create a line plot of the arable land over time, with the forecasted line
 year = np.arange(1960, 2031)
 forecast = logistic(year, *param)
 
-plt.figure()
+plt.figure(figsize=(10.0, 6.0))
 plt.plot(df_arable["Year"], df_arable["Arable land (% of land area)"],
          label="Arable land (% of land area)")
-plt.plot(year, forecast, label="forecast")
+plt.plot(year, forecast, label="Forecast")
 
-plt.xlabel("year")
-plt.ylabel("Arable land (% of land area)")
-plt.legend()
+# Add a title and axis labels
+plt.title("Arable Land as a Percentage of Land Area, 1960-2030", fontsize=16)
+plt.xlabel("Year", fontsize=12)
+plt.ylabel("Arable Land (% of Land Area)", fontsize=12)
+
+# Set the x-axis tick marks to every 10 years
+plt.xticks(range(1960, 2031, 10))
+
+# Add a legend
+plt.legend(fontsize=12)
+
+# Show the plot
 plt.show()
 
 low, up = err.err_ranges(year, logistic, param, sigma)
@@ -277,19 +371,32 @@ param, covar = opt.curve_fit(
 
 sigma = np.sqrt(np.diag(covar))
 print(sigma)
+# Create a line plot of the arable land over time, with the forecasted line
+# and error bands
 year = np.arange(1960, 2031)
 forecast = poly(year, *param)
 low, up = err.err_ranges(year, poly, param, sigma)
 
 df_arable["fit"] = poly(df_arable["Year"], *param)
 
-plt.figure()
+plt.figure(figsize=(10.0, 6.0))
 plt.plot(df_arable["Year"], df_arable["Arable land (% of land area)"],
          label="Arable land (% of land area)")
-plt.plot(year, forecast, label="forecast")
+plt.plot(year, forecast, label="Forecast")
 
+# Add the error bands to the plot
 plt.fill_between(year, low, up, color="yellow", alpha=0.7)
-plt.xlabel("year")
-plt.ylabel("Arable land (% of land area)")
-plt.legend()
+
+# Add a title and axis labels
+plt.title("Arable Land as a Percentage of Land Area, 1960-2030", fontsize=16)
+plt.xlabel("Year", fontsize=12)
+plt.ylabel("Arable Land (% of Land Area)", fontsize=12)
+
+# Set the x-axis tick marks to every 10 years
+plt.xticks(range(1960, 2031, 10))
+
+# Add a legend
+plt.legend(fontsize=12)
+
+# Show the plot
 plt.show()
